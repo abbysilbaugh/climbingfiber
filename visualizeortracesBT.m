@@ -1,0 +1,54 @@
+% Note: will only work on trialavg = 1 & catmouse = 1 OR trialavg = 1 & cellavg = 1 & catmouse = 1
+
+function [pre, pre_wo] = visualizeortracesBT(neuron_colors, xlimits, ylimits, stimframe,...
+    pre, pre_wo, showtraces)
+
+neuron_names = {'PV', 'PN', 'VIP', 'UC', 'SST'};
+
+% Find neurons with evoked events in relevant conditions
+for i = 1:length(neuron_names)
+
+        pre_selected = pre{i};
+        pre_wo_selected = pre_wo{i};
+        
+%         findcells = ~isnan(pre_selected(1, :)) & ~isnan(pre_wo_selected(1,:));
+%         
+%         pre_selected = pre_selected(:, findcells);
+%         pre_wo_selected = pre_wo_selected(:, findcells);
+
+        pre{i} = pre_selected;
+        pre_wo{i} = pre_wo_selected;
+        
+        getmean_pre = mean(pre_selected, 2, 'omitnan');
+        getmean_pre_wo = mean(pre_wo_selected, 2, 'omitnan');
+        
+        getsem_pre = mean(pre_selected, 2, 'omitnan') / sqrt(size(pre_selected, 2));
+        getsem_pre_wo = mean(pre_wo_selected, 2, 'omitnan') / sqrt(size(pre_wo_selected, 2));
+
+
+        % PLOT W, W+CF
+        if strcmp(showtraces, 'yesplot')
+            figure('Position', [50 50 900 500]);
+            plot(getmean_pre, 'Color', [0.5 0.5 0.5], 'LineWidth', 0.5)
+            hold on
+            set(gca, 'FontSize', 7)
+            fill([1:length(getmean_pre), length(getmean_pre):-1:1], [getmean_pre - getsem_pre; flipud(getmean_pre + getsem_pre)], [0.5 0.5 0.5], 'linestyle', 'none', 'FaceAlpha', 0.5);
+            plot(getmean_pre_wo, 'Color', neuron_colors{i}, 'LineWidth', 0.5)
+            fill([1:length(getmean_pre_wo), length(getmean_pre_wo):-1:1], [getmean_pre_wo - getsem_pre_wo; flipud(getmean_pre_wo + getsem_pre_wo)], neuron_colors{i}, 'linestyle', 'none', 'FaceAlpha', 0.5);
+            xlim(xlimits)
+            ylim(ylimits)
+            ylabel('∆F/F0')
+            line([stimframe, stimframe], [-0.05 ylimits(2)], 'Color', 'k', 'LineWidth', 1)
+            xticks([0, 15.5, 31, 46.5, 62, 77.5, 93]+289.5)
+            xticklabels([-500 0 500 1000 1500 2000 2500])
+            xlabel('ms')
+            %legend('Pre', '', 'Post', '', 'Box', 'off')
+            %ylim([ylimits(1), max(getmean_RWS_pre)*2.75])
+            box off
+            hold off
+            
+        end
+
+end
+
+end
