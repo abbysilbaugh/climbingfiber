@@ -1,0 +1,304 @@
+%% Set variables
+folder = ('Practice Tifs');
+addpath(folder)
+showplots = true;
+range = [305:330]; % Range of frame numbers we could see the artifact in
+size_slice = 100; % Number of columns of 'background' we want to look at to detect big changes in variance (no cells here)
+
+%% Load image files
+% This is a method to load in the multipage tiff stacks that weren't saved
+% through ImageJ. Using imread directly will only ever recognize the first
+% frame
+FN = cell(0);
+FP = cell(0);
+
+[FileName, FolderPath] = uigetfile('*OUT_MotCor.tif', 'Select image', 'Multiselect', 'on');
+if iscell(FileName)
+    for fnumber = 1:length(FileName)
+        FN = cat(1, FN, FileName(fnumber));
+    end
+else
+    FN = cat(1, FN, FileName);
+end
+FP = cat(1, FP, FolderPath);
+
+T = Tiff([FP{1}, FN{1}]);
+j = T.getTag('ImageDescription');
+k = strfind(j, 'images=')+7;
+nframes=str2double(j((1:find(j(k:end)==newline,1))+k-1));
+
+inf = imfinfo([FP{1}, FN{1}]);
+FOV = [inf.Height inf.Width];
+total_num_rows = FOV(1);
+total_num_columns = FOV(2);
+
+%% Load ROI file and create logical ROI matrix
+% A 1 indicates that the pixel is within an ROI
+
+% Load ImageJ ROIs from the .roi zip file
+[ROIName, ROIPath] = uigetfile('*set.zip');
+roi_list = ReadImageJROI(ROIName);
+
+% Initialize the logical array
+roi_mask = false(total_num_rows, total_num_columns);
+
+% Loop through the ROIs and set pixels inside the ROIs to 1 (true)
+for i = 1:numel(roi_list)
+    roi = roi_list{i};
+    
+    switch roi.strType
+        case 'Rectangle'
+            x_start = roi.vnRectBounds(1);
+            y_start = roi.vnRectBounds(2);
+            x_end = roi.vnRectBounds(3);
+            y_end = roi.vnRectBounds(4);
+            
+            roi_mask(y_start:y_end, x_start:x_end) = true;
+        case 'Oval'
+            % You can use regionprops to obtain the ellipse mask
+            error('Oval ROIs are not yet supported in this code.');
+        case 'Polygon'
+            xv = roi.mnCoordinates(:, 1);
+            yv = roi.mnCoordinates(:, 2);
+            
+            [X, Y] = meshgrid(1:size(roi_mask, 2), 1:size(roi_mask, 1));
+            in_roi = inpolygon(X, Y, xv, yv);
+            
+            roi_mask = roi_mask | in_roi;
+        otherwise
+            error('Unsupported ROI type: %s', roi.strType);
+    end
+end
+
+background_mask = ~roi_mask; % 1 indicates pixel is in background
+
+%% Create video and run detection
+for fileN=1:length(FN)
+    video=load_tiffs_fast([FP{1},FN{fileN}],'nframes', nframes);
+    
+    
+    %% Code from remove_artifact adjusted for file format
+    %% Find frames that have the artifact
+    % See if variation in the pixel value of a column on the left (where there
+    % shouldn't be much change) is greater than some threshold
+
+    % variances is a vector containing the total variance of each slice
+    sliced_image = zeros(total_num_rows, size_slice);
+    variances = zeros([1 length(range)]);
+    for i = 1:length(range)
+        frame_to_process = double(video(:, :, range(i)));
+        frame_to_process(roi_mask) = NaN;
+        frame_to_process = fillgaps(frame_to_process);
+        sliced_image = frame_to_process(:, 1:size_slice);
+        variances(i) = var(sliced_image, 0, 'all');
+    end
+
+    % Get the frame numbers of the frames containing the most variance in the
+    % slice
+    % This corresponds to the frame numbers of all the frames containing the
+    % artifact
+    variance_indexes = isoutlier(variances);
+    
+    if sum(variance_indexes) == 0
+        if iscell(FileName)
+            disp(['No artifacts detected in file: ', FileName{fileN}]);
+        else
+            disp(['No artifacts detected in file: ', FileName]);
+    continue;
+    end
+    
+    artifact_frames = range(variance_indexes);
+    non_artifact_frames = range(~variance_indexes);
+
+    %% %% Find rows within each frame that have the artifact
+    changepts = cell(1, length(artifact_frames));
+    artifact_rows = cell(1, length(artifact_frames));
+    non_artifact_rows = cell(1,length(artifact_frames));
+
+    % Use findchangepts function to detect where the abrupt changes occur
+    % Create changepts variable to store indices of changes
+    % Indices within changepts correspond to the rows in the original image
+    for i = 1:length(artifact_frames)
+        % swap rows and columns to use default findchangepts function
+        frame_to_process = double(video(:, :, artifact_frames(i)));
+        frame_to_process(roi_mask) = NaN;
+        frame_to_process = fillgaps(frame_to_process);
+        sliced_image = frame_to_process(:, 1:size_slice);
+        figure;
+        findchangepts(sliced_image', 'MaxNumChanges', 2, 'Statistic','std'); % Plots
+        % automatically
+        [ipt] = findchangepts(sliced_image', 'MaxNumChanges', 2, 'Statistic','std');
+        changepts{i} = [ipt];
+
+        if length(changepts{i}) == 1
+            row1 = changepts{i};
+            mean1 = mean(sliced_image(1:(row1-1), :), 'all');
+            mean2 = mean(sliced_image(row1:total_num_rows, :), 'all');
+            % Artifact is on top of frame
+            if mean1 > mean2
+                artifact_rows{i} = [1:(row1-1)];
+                non_artifact_rows{i} = [row1:total_num_rows];
+            % Artifact is on bottom of frame
+            elseif mean2 > mean1
+                artifact_rows{i} = [row1:total_num_rows];
+                non_artifact_rows{i} = [1:(row1-1)];
+            end
+        elseif length(changepts{i}) == 2
+            row1 = changepts{i}(1);
+            row2 = changepts{i}(2);
+            mean1 = mean(sliced_image(1:(row1-1), :), 'all');
+            mean2 = mean(sliced_image(row1:(row2-1), :), 'all');
+            mean3 = mean(sliced_image(row2:total_num_rows, :), 'all');
+            % Artifact is on top of frame
+            if mean1 > mean2 && mean1 > mean3
+                artifact_rows{i} = [1:(row1-1)];
+                non_artifact_rows{i} = [row1:total_num_rows];
+            % Artifact is on middle of frame
+            elseif mean2 > mean1 && mean2 > mean3
+                artifact_rows{i} = [row1:(row2-1)];
+                non_artifact_rows{i} = [1:(row1-1), row2:total_num_rows];
+            % Artifact is on bottom of frame
+            elseif mean3 > mean1 && mean3 > mean2
+                artifact_rows{i} = [row2:total_num_rows];
+                non_artifact_rows{i} = [1:(row2-1)];
+            end
+        end
+    end
+
+    %% Create logical array for each artifact frame
+    % Create logical array for each artifact frame, 1 indicates presence of
+    % artifact
+
+    empty_frame = zeros(total_num_rows, total_num_columns);
+    artifact_logical_frame = cell(1, length(artifact_frames));
+
+    for i = 1:length(artifact_frames)
+        artifact_logical_frame{i} = empty_frame;
+        artifact_rows_toindicate = artifact_rows{i};
+        artifact_logical_frame{i}(artifact_rows_toindicate, :) = true;
+    end
+
+    %% Subtract the artifact from artifact-containing frames
+    % Take the mean fluorescence of the artifact and non artifact sections,
+    % using the roi_mask logical array to ignore the ROIs
+
+    corrected_frames = cell(1, length(artifact_frames));
+    artifact_background_idx_allframes = cell(1, length(artifact_frames));
+    artifact_diff_allframes = cell(1, length(artifact_frames));
+    background_mask = ~roi_mask; % 1 indicates pixel is in background
+
+    for i = 1:length(artifact_frames)
+        frame_to_process = video(:, :, artifact_frames(i));
+        artifact_log_frame = logical(artifact_logical_frame{i});
+
+        % Calculate the mean of the artifact area in the background
+        artifact_background_idx = artifact_log_frame & background_mask;
+        artifact_sum = sum(frame_to_process(artifact_background_idx));
+        artifact_count = sum(artifact_background_idx(:));
+        artifact_mean = artifact_sum / artifact_count;
+
+        % Calculate the mean of the non-artifact area in the background
+        non_artifact_log_frame = ~artifact_log_frame;
+        non_artifact_background_idx = non_artifact_log_frame & background_mask;
+        non_artifact_sum = sum(frame_to_process(non_artifact_background_idx));
+        non_artifact_count = sum(non_artifact_background_idx(:));
+        non_artifact_mean = non_artifact_sum / non_artifact_count;
+
+        % Subtract the artifact difference from the pixels containing artifact
+        artifact_diff = artifact_mean - non_artifact_mean;
+
+        artifact_diff_allframes{i} = artifact_diff;
+        artifact_background_idx_allframes{i} = artifact_background_idx;
+
+        frame_to_process(artifact_log_frame) = frame_to_process(artifact_log_frame) - artifact_diff;
+
+        corrected_frames{i} = frame_to_process;
+    end
+
+    %% Save Plots
+    % NOTE: for imshow, default display range for uint16 arrays is [0, 65535]
+    % default display range for single or double is [0, 1]
+    % Specify for consistency to prevent potential issues as we convert
+    uint16displayrange = [0, 65535];
+    doubledisplayrange = [0, 1];
+
+    % Plot the set of images with no artifact detected
+    if showplots
+        fig1 = figure;
+    else
+        fig1 = figure('Visible', 'off');
+    end
+    title('Artifact Not Detected')
+    n_subplot_rows = ceil(sqrt(length(non_artifact_frames)));
+    n_subplot_cols = ceil(length(non_artifact_frames) / n_subplot_rows);
+
+    for i = 1:length(non_artifact_frames)
+        frame_to_plot = video(:, :, non_artifact_frames(i));
+        subplot(n_subplot_rows, n_subplot_cols, i);
+        imshow(frame_to_plot, uint16displayrange);
+    end
+    
+    % Save the first figure
+    if iscell(FileName)
+    figure1_name = strrep(FileName{fileN}, 'OUT_MotCor', 'non_artifact_frames');
+    else
+    figure1_name = strrep(FileName, 'OUT_MotCor', 'non_artifact_frames');
+    end
+    figure1_full_path = fullfile(folder, figure1_name);
+    saveas(fig1, figure1_full_path, 'tif');
+
+    % Plot the set of images with artifact detected (raw, detection,
+    % correction)
+    if showplots
+        fig2 = figure;
+    else
+        fig2 = figure('Visible', 'off');
+    end
+    title('Artifact Detected')
+    n_subplot_rows = 3;
+    n_subplot_cols = length(artifact_frames);
+
+    for i = 1:length(artifact_frames)
+        frame_to_plot = video(:, :, artifact_frames(i));
+        subplot(n_subplot_rows, n_subplot_cols, i)
+        imshow(frame_to_plot, uint16displayrange);
+        subplot(n_subplot_rows, n_subplot_cols, i+length(artifact_frames))
+        imshow(artifact_background_idx_allframes{i});
+        subplot(n_subplot_rows, n_subplot_cols, i+(length(artifact_frames)*2))
+        imshow(corrected_frames{i});
+    end
+
+    % Save the second figure
+    if iscell(FileName)
+    figure2_name = strrep(FileName{fileN}, 'OUT_MotCor', 'artifact_frames');
+    else
+    figure2_name = strrep(FileName, 'OUT_MotCor', 'artifact_frames');
+    end
+
+    figure2_full_path = fullfile(folder, figure2_name);
+    saveas(fig2, figure2_full_path, 'tif');
+    
+   %% Replace artifact-containing frames with corrected_frames and save
+    for j = 1:length(artifact_frames)
+        video(:, :, artifact_frames(j)) = corrected_frames{j};
+    end
+    
+    % Generate the new file name
+    if iscell(FileName)
+    new_file_name = strrep(FileName{fileN}, 'OUT_MotCor', 'OUT_corrected_MotCor');
+    else
+    new_file_name = strrep(FileName, 'OUT_MotCor', 'OUT_corrected_MotCor');
+    end
+    
+    new_full_path = fullfile(folder, new_file_name);
+    
+    % Save the updated video using write_tiff_fast in windows
+    %write_tiff_fast(new_full_path, video);
+    % Save the updated video as a uint16 multipage TIFF
+    imwrite(video(:, :, 1), new_full_path, 'tif', 'WriteMode', 'overwrite', 'Compression', 'none');
+    for frame = 2:size(video, 3)
+        imwrite(video(:, :, frame), new_full_path, 'tif', 'WriteMode', 'append', 'Compression', 'none');
+    end
+end
+
+
