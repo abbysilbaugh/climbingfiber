@@ -6,7 +6,7 @@ for i = 1:nMice
 
     % Window 1
     evokedtraces = allData.data{i}.evokedtraces;
-    golaysignal3 = allData.data{i}.golaysignal3;
+    golaysignal = allData.data{i}.golaysignal;
     motionInfo = allData.data{i}.motionInfo;
     motType = allData.data{i}.trialmotType;
     reltime = allData.data{i}.reltime;
@@ -20,20 +20,20 @@ for i = 1:nMice
     for j = 1:nTrials
         if rej(j) == 1
             evokedtraces(:, :, j) = NaN;
-            golaysignal3(:, :, j) = NaN;
+            golaysignal(:, :, j) = NaN;
             motionInfo(:, j) = NaN;
             motType{j} = NaN;
         end
     end
 
     allData.data{i}.evokedtraces_settime = evokedtraces;
-    allData.data{i}.golaysignal3_settime = golaysignal3;
+    allData.data{i}.golaysignal_settime = golaysignal;
     allData.data{i}.motionInfo_settime = motionInfo;
     allData.data{i}.trialmotType_settime = motType;
 
     % Window 2
     evokedtraces = allData.data{i}.evokedtraces;
-    golaysignal3 = allData.data{i}.golaysignal3;
+    golaysignal = allData.data{i}.golaysignal;
     motionInfo = allData.data{i}.motionInfo;
     motType = allData.data{i}.trialmotType;
     reltime = allData.data{i}.reltime;
@@ -47,14 +47,14 @@ for i = 1:nMice
     for j = 1:nTrials
         if rej(j) == 1
             evokedtraces(:, :, j) = NaN;
-            golaysignal3(:, :, j) = NaN;
+            golaysignal(:, :, j) = NaN;
             motionInfo(:, j) = NaN;
             motType{j} = NaN;
         end
     end
 
-    allData.data{i}.evokedtraces_settime2 = evokedtraces;
-    allData.data{i}.golaysignal3_settime2 = golaysignal3;
-    allData.data{i}.motionInfo_settime2 = motionInfo;
-    allData.data{i}.trialmotType_settime2 = motType;
+%     allData.data{i}.evokedtraces_settime2 = evokedtraces;
+%     allData.data{i}.golaysignal_settime2 = golaysignal;
+%     allData.data{i}.motionInfo_settime2 = motionInfo;
+%     allData.data{i}.trialmotType_settime2 = motType;
 end

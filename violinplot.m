@@ -1,193 +1,321 @@
-function violins = violinplot(data, cats, varargin)
-%Violinplots plots violin plots of some data and categories
-%   VIOLINPLOT(DATA) plots a violin of a double vector DATA
+function hh = violinplot(varargin)
 %
-%   VIOLINPLOT(DATAMATRIX) plots violins for each column in
-%   DATAMATRIX.
-%
-%   VIOLINPLOT(DATAMATRIX, CATEGORYNAMES) plots violins for each
-%   column in DATAMATRIX and labels them according to the names in the
-%   cell-of-strings CATEGORYNAMES.
-%
-%   In the cases above DATA and DATAMATRIX can be a vector or a matrix,
-%   respectively, either as is or wrapped in a cell.
-%   To produce violins which have one distribution on one half and another
-%   one on the other half, DATA and DATAMATRIX have to be cell arrays
-%   with two elements, each containing a vector or a matrix. The number of
-%   columns of the two data sets has to be the same.
-%
-%   VIOLINPLOT(DATA, CATEGORIES) where double vector DATA and vector
-%   CATEGORIES are of equal length; plots violins for each category in
-%   DATA.
-%
-%   VIOLINPLOT(TABLE), VIOLINPLOT(STRUCT), VIOLINPLOT(DATASET)
-%   plots violins for each column in TABLE, each field in STRUCT, and
-%   each variable in DATASET. The violins are labeled according to
-%   the table/dataset variable name or the struct field name.
-%
-%   violins = VIOLINPLOT(...) returns an object array of
-%   <a href="matlab:help('Violin')">Violin</a> objects.
-%
-%   VIOLINPLOT(..., 'PARAM1', val1, 'PARAM2', val2, ...)
-%   specifies optional name/value pairs for all violins:
-%     'Width'        Width of the violin in axis space.
-%                    Defaults to 0.3
-%     'Bandwidth'    Bandwidth of the kernel density estimate.
-%                    Should be between 10% and 40% of the data range.
-%     'ViolinColor'  Fill color of the violin area and data points. Accepts
-%                    1x3 color vector or nx3 color vector where n = num
-%                    groups. In case of two data sets being compared it can 
-%                    be an array of up to two cells containing nx3
-%                    matrices.
-%                    Defaults to the next default color cycle.
-%     'ViolinAlpha'  Transparency of the violin area and data points.
-%                    Can be either a single scalar value or an array of
-%                    up to two cells containing scalar values.
-%                    Defaults to 0.3.
-%     'MarkerSize'   Size of the data points, if shown.
-%                    Defaults to 24
-% 'MedianMarkerSize' Size of the median indicator, if shown.
-%                    Defaults to 36
-%     'EdgeColor'    Color of the violin area outline.
-%                    Defaults to [0.5 0.5 0.5]
-%     'BoxColor'     Color of the box, whiskers, and the outlines of
-%                    the median point and the notch indicators.
-%                    Defaults to [0.5 0.5 0.5]
-%     'MedianColor'  Fill color of the median and notch indicators.
-%                    Defaults to [1 1 1]
-%     'ShowData'     Whether to show data points.
-%                    Defaults to true
-%     'ShowNotches'  Whether to show notch indicators.
-%                    Defaults to false
-%     'ShowMean'     Whether to show mean indicator
-%                    Defaults to false
-%     'ShowBox'      Whether to show the box.
-%                    Defaults to true
-%     'ShowMedian'   Whether to show the median indicator.
-%                    Defaults to true
-%     'ShowWhiskers' Whether to show the whiskers
-%                    Defaults to true
-%     'GroupOrder'   Cell of category names in order to be plotted.
-%                    Defaults to alphabetical ordering
 
-% Copyright (c) 2016, Bastian Bechtold
-% This code is released under the terms of the BSD 3-clause license
+%   Copyright 2024-2025 The MathWorks, Inc.
 
-hascategories = exist('cats','var') && not(isempty(cats));
+import matlab.graphics.chart.internal.inputparsingutils.peelFirstArgParent
+import matlab.graphics.chart.internal.inputparsingutils.getParent
+import matlab.graphics.chart.internal.inputparsingutils.prepareAxes
+import matlab.graphics.chart.internal.inputparsingutils.splitPositionalFromPV
 
-%parse the optional grouporder argument
-%if it exists parse the categories order
-% but also delete it from the arguments passed to Violin
-grouporder = {};
-idx=find(strcmp(varargin, 'GroupOrder'));
-if ~isempty(idx) && numel(varargin)>idx
-    if iscell(varargin{idx+1})
-        grouporder = varargin{idx+1};
-        varargin(idx:idx+1)=[];
+narginchk(1,Inf);
+funcName = 'violinplot';
+
+[parent,args] = peelFirstArgParent(varargin,false);
+
+if isempty(args)
+    error(message('MATLAB:narginchk:notEnoughInputs'))
+end
+
+% Inspect, validate and prepare data:
+usePDF = matlab.graphics.internal.isCharOrString(args{1});
+useTable = istabular(args{1});
+
+if usePDF
+    [~, pvpairs] = splitPositionalFromPV(args, 0, false);
+    if numel(pvpairs) < 4
+        error(message('MATLAB:narginchk:notEnoughInputs'))
+    end
+elseif useTable
+    [posargs, pvpairs] = splitPositionalFromPV(args, 2, true);
+    tableArg = posargs{1};
+    yVarArg  = posargs{end};
+    xVarProvided = false;
+    if numel(posargs) == 3
+        xVarArg  = posargs{2};
+        xVarProvided = true;
+    end
+
+    dataSource = matlab.graphics.data.DataSource(tableArg);
+    dataMap = matlab.graphics.data.DataMap(dataSource);
+    if xVarProvided
+        dataMap = dataMap.addChannel('X', xVarArg);
+    end
+    dataMap = dataMap.addChannel('Y', yVarArg);
+    % Validate the data by looking at the data itself, not just the subscripts:
+    matlab.graphics.chart.primitive.ViolinPlot.validateData(dataMap);
+else
+    [posargs, pvpairs] = splitPositionalFromPV(args, 1, true);
+
+    ydata = posargs{end};
+    yIsMatrix = ~isvector(ydata);
+    validateattributes(ydata,{'numeric'},{'2d','real'},funcName,'ydata');
+    if ~yIsMatrix
+        ydata = ydata(:);
+    end
+
+    if numel(posargs) == 2
+        xgroupdataProvided = true;
+        xgroupdata = posargs{1};
+        validateattributes(xgroupdata,{'numeric','categorical'},{'2d'},funcName,'xgroupdata');
     else
-        error('Second argument of ''GroupOrder'' optional arg must be a cell of category names')
+        xgroupdata = [];
+        xgroupdataProvided = false;
     end
-end
 
-% check and correct the structure of ViolinColor input
-idx=find(strcmp(varargin, 'ViolinColor'));
-if ~isempty(idx) && iscell(varargin{idx+1})
-    if length(varargin{idx+1}(:))>2
-        error('ViolinColor input can be at most a two element cell array');
-    end
-elseif ~isempty(idx) && isnumeric(varargin{idx+1})
-    varargin{idx+1} = varargin(idx+1);
-end
-
-% check and correct the structure of ViolinAlpha input
-idx=find(strcmp(varargin, 'ViolinAlpha'));
-if ~isempty(idx) && iscell(varargin{idx+1})
-    if length(varargin{idx+1}(:))>2
-        error('ViolinAlpha input can be at most a two element cell array');
-    end
-elseif ~isempty(idx) && isnumeric(varargin{idx+1})
-    varargin{idx+1} = varargin(idx+1);
-end
-
-% tabular data
-if isa(data, 'dataset') || isstruct(data) || istable(data)
-    if isa(data, 'dataset')
-        colnames = data.Properties.VarNames;
-    elseif istable(data)
-        colnames = data.Properties.VariableNames;
-    elseif isstruct(data)
-        colnames = fieldnames(data);
-    end
-    catnames = {};
-    if isempty(grouporder)
-        for n=1:length(colnames)
-            if isnumeric(data.(colnames{n}))
-                catnames = [catnames colnames{n}]; %#ok<*AGROW>
+    if xgroupdataProvided  % otherwise the object handles this
+        if yIsMatrix
+            ydatadim = size(ydata);
+            if isvector(xgroupdata)
+                numelx = numel(xgroupdata);
+                % xgroupdata must match up with the number of rows or columns:
+                if numelx == ydatadim(2)
+                    xgroupdata = repelem(xgroupdata(:)', ydatadim(1), 1);
+                elseif numelx == ydatadim(1)
+                    xgroupdata = repelem(xgroupdata(:), 1, ydatadim(2));
+                else
+                    error(message('MATLAB:graphics:violinplot:InvalidXYData'))
+                end
+            elseif ~isequal(size(xgroupdata), ydatadim)
+                error(message('MATLAB:graphics:violinplot:InvalidXYData'))
             end
-        end
-        catnames = sort(catnames);
-    else
-        for n=1:length(grouporder)
-            if isnumeric(data.(grouporder{n}))
-                catnames = [catnames grouporder{n}];
-            end
-        end
-    end
-    
-    for n=1:length(catnames)
-        thisData = data.(catnames{n});
-        violins(n) = Violin({thisData}, n, varargin{:});
-    end
-    set(gca, 'XTick', 1:length(catnames), 'XTickLabels', catnames);
-    set(gca,'Box','on');
-    return
-elseif iscell(data) && length(data(:))==2 % cell input
-    if not(size(data{1},2)==size(data{2},2))
-        error('The two input data matrices have to have the same number of columns');
-    end
-elseif iscell(data) && length(data(:))>2 % cell input
-    error('Up to two datasets can be compared');
-elseif isnumeric(data) % numeric input   
-    % 1D data, one category for each data point
-    if hascategories && numel(data) == numel(cats)    
-        if isempty(grouporder)
-            cats = categorical(cats);
         else
-            cats = categorical(cats, grouporder);
+            if isscalar(xgroupdata)
+                xgroupdata = repelem(xgroupdata,numel(ydata),1);
+            end
+            if isvector(xgroupdata)
+                if numel(xgroupdata) ~= numel(ydata)
+                    error(message('MATLAB:graphics:violinplot:InvalidXYData'))
+                end
+                xgroupdata = xgroupdata(:);
+            else % xgroupdata is a matrix. Rows must match ydata
+                sizeX = size(xgroupdata);
+                if sizeX(1) == numel(ydata)
+                    ydata = repmat(ydata,1,sizeX(2));
+                    yIsMatrix = true;
+                else
+                    error(message('MATLAB:graphics:violinplot:InvalidXYData'))
+                end
+            end
         end
-        
-        catnames = (unique(cats)); % this ignores categories without any data
-        catnames_labels = {};
-        for n = 1:length(catnames)
-            thisCat = catnames(n);
-            catnames_labels{n} = char(thisCat);
-            thisData = data(cats == thisCat);
-            violins(n) = Violin({thisData}, n, varargin{:});
+    end
+end
+
+% Check if GroupByColor specified:
+colGrps = [];
+colGrpsIdx = [];
+for i = 1:2:numel(pvpairs)
+    if startsWith('GroupByColor',pvpairs{i},'IgnoreCase',true)
+        colGrpsIdx = [colGrpsIdx,i];
+    end
+end
+colorGrouping = ~isempty(colGrpsIdx);
+if colorGrouping
+    if useTable
+        error(message('MATLAB:graphics:violinplot:ColGrpsNotWithTables'))
+    elseif usePDF
+        error(message('MATLAB:graphics:violinplot:ColGrpsNotWithPDFs'))
+    elseif ~isvector(ydata)
+        % This covers the case where xgroupdata was provided as a matrix
+        error(message('MATLAB:graphics:violinplot:ColGrpsOnlyWithYvec'))
+    end
+    colGrps = pvpairs{colGrpsIdx(end) + 1};
+    validateattributes(colGrps,{'numeric','categorical','logical',...
+        'char','string','cell'},{'real','nonsparse','vector'},funcName,'GroupByColor');
+    if numel(colGrps) ~= numel(ydata)
+        error(message('MATLAB:graphics:violinplot:BadColGroupVectorY'))
+    end
+
+    % Obtain group indices and names
+    [gnum,gnames] = findgroups(colGrps);
+    gnames = gnames(:);
+
+    pvpairs([colGrpsIdx,colGrpsIdx+1]) = [];
+end
+
+
+% validatePartialPropertyNames will throw if there are any invalid property
+% names (i.e. a name that doesn't exist on ViolinPlot or is ambiguous) and
+% return full capitalized property names
+propNames = matlab.graphics.internal.validatePartialPropertyNames(...
+    'matlab.graphics.chart.primitive.ViolinPlot', pvpairs(1:2:end));
+pvpairs(1:2:end) = cellstr(propNames);
+
+% Inspect if pdfs were given
+evalPtsIdx = find(propNames == "EvaluationPoints",1,"last");
+densValIdx = find(propNames == "DensityValues",1,"last");
+
+if (~usePDF || useTable) && (~isempty(evalPtsIdx) || ~isempty(densValIdx))
+    error(message("MATLAB:graphics:violinplot:NoPDFWithData"))
+end
+if usePDF
+    if isempty(evalPtsIdx) || isempty(densValIdx)
+        error(message("MATLAB:graphics:violinplot:BothPDFPartsNeeded"))
+    end
+
+    evalPts = pvpairs{2*evalPtsIdx};
+    densVal = pvpairs{2*densValIdx};
+
+    validateattributes(evalPts,{'double','single'},...
+        {'2d','real','nonsparse','finite'},funcName,'',2*evalPtsIdx);
+    validateattributes(densVal,{'numeric'},{'2d','real'},funcName,'',2*densValIdx);
+end
+
+% Prepare axes once all has been validated above:
+[parent, hasParent] = getParent(parent, pvpairs);
+[parent,ancestorAxes] = prepareAxes(parent, hasParent);
+
+% Inspect if the orientation is given
+userSpecifiedOrientation = [];
+orIdx = find(propNames == "Orientation");
+if ~isempty(orIdx)
+    % Extract the last value:
+    userSpecifiedOrientation = pvpairs{2*orIdx(end)};
+    % Remove all references:
+    propNames(orIdx) = [];
+    pvpairs([2*(orIdx-1)+1,2*orIdx]) = [];
+end
+
+% Get number of objects:
+if usePDF
+    nObjects = 1;
+    % Configure x-axis
+    if isscalar(ancestorAxes)
+        tmpXData = categorical(1);
+        if ~isvector(evalPts)
+            tmpXData = categorical(1:size(evalPts,2));
         end
-        set(gca, 'XTick', 1:length(catnames), 'XTickLabels', catnames_labels);
-        set(gca,'Box','on');
-        return
+        matlab.graphics.internal.configureAxes(ancestorAxes,tmpXData,evalPts);
+    end
+elseif useTable
+    nObjects = dataMap.NumObjects;
+else
+    if colorGrouping
+        nObjects = numel(gnames);
     else
-        data = {data};
+        nObjects = size(ydata,2);
+    end
+    % Configure x-axis
+    if isscalar(ancestorAxes)
+        if xgroupdataProvided
+            tmpXData = xgroupdata;
+        elseif colorGrouping
+            tmpXData = categorical(1);
+        else
+            tmpXData = categorical(1:nObjects);
+        end
+        matlab.graphics.internal.configureAxes(ancestorAxes,tmpXData,ydata);
     end
 end
+h = gobjects(1, nObjects);
 
-% 1D data, no categories
-if not(hascategories) && isvector(data{1})
-    violins = Violin(data, 1, varargin{:});
-    set(gca, 'XTick', 1);
-% 2D data with or without categories
-elseif ismatrix(data{1})
-    for n=1:size(data{1}, 2)
-        thisData = cellfun(@(x)x(:,n),data,'UniformOutput',false);
-        violins(n) = Violin(thisData, n, varargin{:});
+% Create violins:
+for i = 1:nObjects
+
+    if usePDF
+        h(i) = matlab.graphics.chart.primitive.ViolinPlot('Parent', parent, ...
+            'EvaluationPoints', evalPts, 'DensityValues', densVal,...
+            'PeerID', i, pvpairs{:});
+    elseif useTable
+        sliceStruct = dataMap.slice(i);
+        if isscalar(ancestorAxes)
+            if xVarProvided
+                x = dataSource.getData(sliceStruct.X);
+            else
+                x = {categorical(1:nObjects)};
+            end
+            y = dataSource.getData(sliceStruct.Y);
+            matlab.graphics.internal.configureAxes(ancestorAxes, x{1}, y{1});
+        end
+        tableArgs = {'SourceTable',dataSource.Table, 'YVariable', sliceStruct.Y};
+        if xVarProvided
+            tableArgs= [tableArgs(:)', {'XVariable'},{sliceStruct.X}];
+        end
+        h(i) = matlab.graphics.chart.primitive.ViolinPlot( ...
+            'Parent', parent, tableArgs{:}, 'PeerID', i, pvpairs{:});
+
+    else % Use Data
+        if colorGrouping
+            ind = gnum == i;
+            dataArgs = {'YData',ydata(ind)};
+            if xgroupdataProvided
+                dataArgs = [{'XData'},{xgroupdata(ind)}, dataArgs(:)'];
+            end
+            colorArgs = {'NumColorGroups', nObjects,'GroupByColorMode','manual'};
+        else
+            dataArgs = {'YData',ydata(:,i)};
+            if xgroupdataProvided
+                dataArgs = [{'XData'},{xgroupdata(:,i)}, dataArgs(:)'];
+            end
+            colorArgs = {};
+        end
+        h(i) = matlab.graphics.chart.primitive.ViolinPlot('Parent', parent, ...
+            dataArgs{:}, colorArgs{:}, 'PeerID',i, pvpairs{:});
     end
-    set(gca, 'XTick', 1:size(data{1}, 2));
-    if hascategories && length(cats) == size(data{1}, 2)
-        set(gca, 'XTickLabels', cats);
-    end
+    h(i).assignSeriesIndex;
 end
 
-set(gca,'Box','on');
+if nObjects==0
+    h = matlab.graphics.chart.primitive.ViolinPlot.empty(1,0);
+else
+    % Set the peers if there are more than one object:
+    if nObjects > 1
+        for i = 1:nObjects
+            h(i).ViolinPeers = h(i ~= 1:nObjects);
+        end
+    end
+
+    % Set orientation, if given
+    if ~isempty(userSpecifiedOrientation)
+        set(h,'Orientation',userSpecifiedOrientation);
+    end
+    % Find a sensible unit:
+    if colorGrouping
+        % We have to find the units and widths from
+        % xgroupdata, which must be a vector:
+        if iscategorical(xgroupdata) || isempty(xgroupdata)
+            uniquex = 1;
+        else
+            uniquex=unique(xgroupdata);
+            % Remove Inf and NaN:
+            uniquex=uniquex(isfinite(uniquex));
+        end
+        xunit = 1;
+        if numel(uniquex) > 1
+            xunit = min(diff(uniquex));
+        end
+    else
+        xunits = ones(1, nObjects);
+        for i = 1:nObjects
+            x = h(i).XData_I;
+            % ... and their unique values:
+            if iscategorical(x) || isempty(x)
+                uniquex = 1;
+            elseif ~isnumeric(x)
+                error(message('MATLAB:graphics:violinplot:BadXData'))
+            else
+                uniquex=unique(x);
+                % Remove Inf and NaN:
+                uniquex=uniquex(isfinite(uniquex));
+            end
+            if numel(uniquex) > 1
+                xunits(i) = min(diff(uniquex));
+            end
+        end
+        xunit = min(xunits);
+    end
+    set(h,'XDataUnit_I',xunit);
+
+    % Inspect if the width was set:
+    if h(1).DensityWidthMode == "auto"
+        set(h,'DensityWidth_I',0.9*xunit);
+    end
+
+end
+
+% Return handle only if requested
+if nargout>0
+    hh = h;
+end
 
 end

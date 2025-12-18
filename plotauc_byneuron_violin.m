@@ -52,14 +52,14 @@ if ~isempty(m1_PN)
 %     ax = gca;
 %     ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
     daviolinplot(m1_PN,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{2}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1, 'violinalpha', 0);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{2}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1, 'violinalpha', 0);
 ylim(ylimits)
 if p_m1_PN < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
 end
 title(group_names(1))
 end
-ylabel('AUC (ΔF/F0)')
+ylabel('AUC (ΔFt/F)')
 set(gca,'FontSize',7, 'FontName', 'Helvetica')
 
 
@@ -69,7 +69,7 @@ if ~isempty(m1_UC)
 %     ax = gca;
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m1_UC,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{4}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{4}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m1_UC < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -82,7 +82,7 @@ if ~isempty(m1_VIP)
 %     ax = gca;
 %     ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m1_VIP,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{3}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{3}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m1_VIP < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -97,7 +97,7 @@ if ~isempty(m1_SST)
 %     ax = gca;
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m1_SST,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{5}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{5}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m1_SST < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -110,9 +110,9 @@ set(gca,'FontSize',7, 'FontName', 'Helvetica')
 subplot(1, 5, 5)
 if ~isempty(m1_PV)
     ax = gca;
-ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
+%ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m1_PV,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{1}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{1}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m1_PV < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -131,7 +131,7 @@ if ~isempty(m2_PN)
 % ax = gca;
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m2_PN,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{2}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{2}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 set(gca,'FontSize',7, 'FontName', 'Helvetica')
 if p_m2_PN < 0.05
@@ -139,7 +139,7 @@ if p_m2_PN < 0.05
 end
 title(group_names(2))
 end
-ylabel('AUC (ΔF/F0)')
+ylabel('AUC (ΔFt/F)')
 
 
 subplot(1, 5, 2)
@@ -147,7 +147,7 @@ if ~isempty(m2_UC)
 %     ax = gca;
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m2_UC,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{4}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{4}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m2_UC < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -162,7 +162,7 @@ if ~isempty(m2_VIP)
 %     ax = gca;
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m2_VIP,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{3}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{3}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m2_VIP < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -177,7 +177,7 @@ if ~isempty(m2_SST)
 %     ax = gca;
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m2_SST,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{5}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{5}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m2_SST < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -192,7 +192,7 @@ if ~isempty(m2_PV)
 %     ax = gca;
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(m2_PV,'xtlabels', condition_names,'whiskers',1,...
-    'scatter',1,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{1}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
+    'scatter',0,'scatteralpha',0.6,'withinlines',plotlines,'outliers',0, 'color', neuron_colors{1}, 'linkline', 1, 'boxcolors', 'k', 'box', 2, 'scattercolors', 'same', 'scattersize', 5, 'flipcolors', 1);
 ylim(ylimits)
 if p_m2_PV < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
@@ -226,8 +226,8 @@ if ~isempty(PNs{1})
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(PNs,'linkline',1,...
     'xtlabels', condition_names,...
-    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',1,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{2}], 'boxcolors', 'k', 'flipcolors', 1);
-ylabel('AUC (ΔF/F0)');
+    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',0,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{2}], 'boxcolors', 'k', 'flipcolors', 1);
+ylabel('AUC (ΔFt/F)');
 end
 ylim(ylimits)
 set(gca,'FontSize',7, 'FontName', 'Helvetica')
@@ -240,8 +240,8 @@ if ~isempty(UCs{1})
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(UCs,'linkline',1,...
     'xtlabels', condition_names,...
-    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',1,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{4}], 'boxcolors', 'k', 'flipcolors', 1);
-ylabel('AUC (ΔF/F0)'); 
+    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',0,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{4}], 'boxcolors', 'k', 'flipcolors', 1);
+ylabel('AUC (ΔFt/F)'); 
 end
 ylim(ylimits)
 set(gca,'FontSize',7, 'FontName', 'Helvetica')
@@ -254,8 +254,8 @@ if ~isempty(VIPs{1}) && ~isempty(VIPs{2})
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(VIPs,'linkline',1,...
     'xtlabels', condition_names,...
-    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',1,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{3}], 'boxcolors', 'k', 'flipcolors', 1);
-ylabel('AUC (ΔF/F0)'); 
+    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',0,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{3}], 'boxcolors', 'k', 'flipcolors', 1);
+ylabel('AUC (ΔFt/F)'); 
 end
 ylim(ylimits)
 set(gca,'FontSize',7, 'FontName', 'Helvetica')
@@ -268,8 +268,8 @@ if ~isempty(PVs{1})
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(PVs,'linkline',1,...
     'xtlabels', condition_names,...
-    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',1,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{1}], 'boxcolors', 'k', 'flipcolors', 1);
-ylabel('AUC (ΔF/F0)'); 
+    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',0,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{1}], 'boxcolors', 'k', 'flipcolors', 1);
+ylabel('AUC (ΔFt/F)'); 
 end
 ylim(ylimits)
 set(gca,'FontSize',7, 'FontName', 'Helvetica')
@@ -282,8 +282,8 @@ if ~isempty(SSTs{1})
 % ax.XRuler.Axle.Visible = 'off'; % Hides only the bottom x-axis line
 daviolinplot(SSTs,'linkline',1,...
     'xtlabels', condition_names,...
-    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',1,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{5}], 'boxcolors', 'k', 'flipcolors', 1);
-ylabel('AUC (ΔF/F0)'); 
+    'whiskers',1,'outliers',0,'outsymbol','r*','scatter',0,'boxalpha',1, 'color', [[0.5 0.5 0.5]; neuron_colors{5}], 'boxcolors', 'k', 'flipcolors', 1);
+ylabel('AUC (ΔFt/F)'); 
 end
 ylim(ylimits)
 set(gca,'FontSize',7, 'FontName', 'Helvetica')
@@ -352,7 +352,7 @@ for i = 1:5
     % Add title with p-values
     title(sprintf('%s\np(m1)=%.3g, p(m2)=%.3g', cell_types{i}, p_m1, p_m2));
     xlabel('AUC');
-    ylabel('AUC (ΔF/F0)');
+    ylabel('AUC (ΔFt/F)');
     axis equal;
     hold off;
     end

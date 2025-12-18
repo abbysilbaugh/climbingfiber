@@ -61,6 +61,7 @@ end
 ylabel('AUC (∆Ft/F)')
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 
+
 subplot(1, 5, 2)
 if ~isempty(m1_UC)
 dabarplot(m1_UC,'xtlabels', condition_names,'fill', 0,...
@@ -71,6 +72,7 @@ if p_m1_UC < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+
 
 subplot(1, 5, 3)
 if ~isempty(m1_VIP)
@@ -83,6 +85,7 @@ end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 
+
 subplot(1, 5, 4)
 if ~isempty(m1_SST)
 dabarplot(m1_SST,'xtlabels', condition_names,'fill', 0,...
@@ -94,6 +97,7 @@ end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 
+
 subplot(1, 5, 5)
 if ~isempty(m1_PV)
 dabarplot(m1_PV,'xtlabels', condition_names,'fill', 0,...
@@ -104,6 +108,7 @@ if p_m1_PV < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+
 
 
 % Create bar plots for mouse 2
@@ -121,6 +126,7 @@ end
 ylabel('AUC (∆Ft/F)')
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 
+
 subplot(1, 5, 2)
 if ~isempty(m2_UC)
 dabarplot(m2_UC,'xtlabels', condition_names,'fill', 1,...
@@ -131,6 +137,7 @@ if p_m2_UC < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+
 
 subplot(1, 5, 3)
 if ~isempty(m2_VIP)
@@ -143,6 +150,7 @@ end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 
+
 subplot(1, 5, 4)
 if ~isempty(m2_SST)
 dabarplot(m2_SST,'xtlabels', condition_names,'fill', 1,...
@@ -154,6 +162,7 @@ end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 
+
 subplot(1, 5, 5)
 if ~isempty(m2_PV)
 dabarplot(m2_PV,'xtlabels', condition_names,'fill', 1,...
@@ -164,6 +173,7 @@ if p_m2_PV < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+
 
 % RUN STATS (2 groups, each condition)
 [p_PN_c1, p_PN_c2] = rununpairedstats(m1_PN, m2_PN);
@@ -232,6 +242,8 @@ set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 end
 ylim(ylimits)
 xlim([0.5 2.5])
+
+
 
 % Plot scatter plots
 % Define cell types and data
@@ -306,6 +318,8 @@ end
 
 
 end
+
+
 
 function p = runpairedstats(data, cellType)
 if ~isempty(data)

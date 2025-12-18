@@ -136,7 +136,7 @@ end
 
 end
 
-function p = rununpairedstats(data)
+function p = rununpairedstats(data, cellType)
 if ~isempty(data)
     data1 = data(:, 1); data2 = data(:, 2);
     if sum(~isnan(data1)) >=4 && sum(~isnan(data2)) >=4
@@ -148,18 +148,42 @@ if ~isempty(data)
 
         % Unpaired t-test (for normal data)
         [~, p] = ttest(data1, data2);
+        testtype = 'Unpaired t-test';
 
     else
 
         p = ranksum(data1, data2);
+        testtype = 'Mann-Whitney U';
         
     end
     else
         p = NaN;
+
+        testtype = 'error';
     end
 else
     p = NaN;
+
+    testtype = 'error';
 end
+
+n1 = sum(~isnan(data1));
+    n2 = sum(~isnan(data2));
+    mean_data1 = mean(data1, 'omitnan');
+    mean_data2 = mean(data2, 'omitnan');
+    median_data1 = median(data1, 'omitnan');
+    median_data2 = median(data2, 'omitnan');
+    sem_data1 = std(data1, 'omitnan')./sqrt(n1);
+    sem_data2 = std(data2, 'omitnan')./sqrt(n2);
+    
+    % Print results
+    fprintf('Cell Type: %s\n', cellType);
+    fprintf('Test Type: %s\n', testtype);
+    fprintf('p-value: %.4f\n', p);
+    fprintf('n W: %d, n W+CF: %d\n', n1, n2);
+    fprintf('Mean W: %.4f, Mean W+CF: %.4f\n', mean_data1, mean_data2);
+    fprintf('Median W: %.4f, Median W+CF: %.4f\n', median_data1, median_data2);
+    fprintf('SEM W: %.4f, SEM W+CF: %.4f\n', sem_data1, sem_data2);
 
 end
 

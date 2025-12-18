@@ -8,7 +8,7 @@ for i = 1:length(allData.data)
 
     signal = allData.data{i}.corrected_rawtrace;
     raw_signal_minus_firstprctile = allData.data{i}.rawminusfirstprctile;
-    raw_signal_minus_smoothed_b = allData.data{i}.ac_bs_signal;
+    %raw_signal_minus_smoothed_b = allData.data{i}.ac_bs_signal;
     baseline_signal = allData.data{i}.corrected_baseline;
 
     [nFrames, nCells, nTrials] = size(signal);
@@ -18,7 +18,7 @@ for i = 1:length(allData.data)
     % trial average for plotting
     raw_signal_trialavg = squeeze(mean(signal, 3));
     raw_signal_minus_firstprctile_trialavg = squeeze(mean(raw_signal_minus_firstprctile, 3));
-    raw_signal_minus_smoothed_b_trialavg = squeeze(mean(raw_signal_minus_smoothed_b, 3));
+    %raw_signal_minus_smoothed_b_trialavg = squeeze(mean(raw_signal_minus_smoothed_b, 3));
     baseline_signal_trialavg = mean(baseline_signal, 2);
     baseline_signal_std = std(baseline_signal, 0, 2);
 
@@ -51,14 +51,14 @@ for i = 1:length(allData.data)
     end
     ylim([0 getmax])
 
-    subplot(1, 3, 3);
+%     subplot(1, 3, 3);
     % Plot corrected trace for each cell (smoothed baseline subtracted)
-    title('Background Subtracted (smoothed baseline)')
-    hold on
-    for j = 1:nCells
-        plot(raw_signal_minus_smoothed_b_trialavg(:, j), 'Color', [0 0 0 0.2])
-    end
-    ylim([0 getmax])
+%     title('Background Subtracted (smoothed baseline)')
+%     hold on
+%     for j = 1:nCells
+%         plot(raw_signal_minus_smoothed_b_trialavg(:, j), 'Color', [0 0 0 0.2])
+%     end
+%     ylim([0 getmax])
 
 
 

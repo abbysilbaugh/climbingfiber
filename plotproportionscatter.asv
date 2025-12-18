@@ -1,0 +1,186 @@
+function plotproportionscatter(m1_cond1, m1_cond2, m2_cond1, m2_cond2, choosetype)
+            % Wheel got stuck
+            m1_cond1(6, :) = NaN;
+            m1_cond2(6, :) = NaN;
+
+            % Outlier
+            m2_cond1(2, :) = NaN;
+            m2_cond2(2, :) = NaN;
+
+% Scatter plots
+        % Rest
+        RWS_pre = m1_cond1(:, 1)*100;
+        RWS_post = m1_cond2(:, 1)*100;
+        RWSCF_pre = m2_cond1(:, 1)*100;
+        RWSCF_post = m2_cond2(:, 1)*100;
+
+        if strcmp(choosetype, 'normalized')
+            RWS_pre_norm = RWS_pre./RWS_pre;
+            RWS_post_norm = RWS_post./RWS_pre;
+            RWSCF_pre_norm = RWSCF_pre./RWSCF_pre;
+            RWSCF_post_norm = RWSCF_post./RWSCF_pre;
+
+            plotPairedPrePost(RWS_pre_norm, RWS_post_norm, RWSCF_pre_norm, RWSCF_post_norm,'Rest', choosetype)
+        else
+            plotPairedPrePost(RWS_pre, RWS_post, RWSCF_pre, RWSCF_post,'Rest', choosetype)
+        end
+        
+
+        % Run
+        RWS_pre = m1_cond1(:, 2)*100;
+        RWS_post = m1_cond2(:, 2)*100;
+        RWSCF_pre = m2_cond1(:, 2)*100;
+        RWSCF_post = m2_cond2(:, 2)*100;
+
+        if strcmp(choosetype, 'normalized')
+            RWS_pre_norm = RWS_pre./RWS_pre;
+            RWS_post_norm = RWS_post./RWS_pre;
+            RWSCF_pre_norm = RWSCF_pre./RWSCF_pre;
+            RWSCF_post_norm = RWSCF_post./RWSCF_pre;
+
+            plotPairedPrePost(RWS_pre_norm, RWS_post_norm, RWSCF_pre_norm, RWSCF_post_norm,'Run', choosetype)
+        else
+            plotPairedPrePost(RWS_pre, RWS_post, RWSCF_pre, RWSCF_post,'Run', choosetype)
+        end
+
+        % Go
+        RWS_pre = m1_cond1(:, 3)*100;
+        RWS_post = m1_cond2(:, 3)*100;
+        RWSCF_pre = m2_cond1(:, 3)*100;
+        RWSCF_post = m2_cond2(:, 3)*100;
+
+        if strcmp(choosetype, 'normalized')
+            RWS_pre_norm = RWS_pre./RWS_pre;
+            RWS_post_norm = RWS_post./RWS_pre;
+            RWSCF_pre_norm = RWSCF_pre./RWSCF_pre;
+            RWSCF_post_norm = RWSCF_post./RWSCF_pre;
+
+            plotPairedPrePost(RWS_pre_norm, RWS_post_norm, RWSCF_pre_norm, RWSCF_post_norm,'Go', choosetype)
+        else
+            plotPairedPrePost(RWS_pre, RWS_post, RWSCF_pre, RWSCF_post,'Go', choosetype)
+        end
+
+
+        % Stop
+        RWS_pre = m1_cond1(:, 4)*100;
+        RWS_post = m1_cond2(:, 4)*100;
+        RWSCF_pre = m2_cond1(:, 4)*100;
+        RWSCF_post = m2_cond2(:, 4)*100;
+
+        if strcmp(choosetype, 'normalized')
+            RWS_pre_norm = RWS_pre./RWS_pre;
+            RWS_post_norm = RWS_post./RWS_pre;
+            RWSCF_pre_norm = RWSCF_pre./RWSCF_pre;
+            RWSCF_post_norm = RWSCF_post./RWSCF_pre;
+
+            plotPairedPrePost(RWS_pre_norm, RWS_post_norm, RWSCF_pre_norm, RWSCF_post_norm,'Stop', choosetype)
+        else
+            plotPairedPrePost(RWS_pre, RWS_post, RWSCF_pre, RWSCF_post,'Stop', choosetype)
+        end
+
+end
+
+function plotPairedPrePost(RWS_pre, RWS_post, RWSCF_pre, RWSCF_post, figtitle, choosetype)
+
+
+    figure;
+
+    % --- Subplot 1: RWS ---
+    temp = cat(1, RWS_pre, RWS_post);
+    temp = cat(1, temp, RWSCF_pre);
+    temp = cat(1, temp, RWSCF_post);
+    temp = temp(~isinf(temp));
+    subplot(2,1,1);
+    plotOnePair(RWS_pre, RWS_post, choosetype);
+    ylimits = max(temp);
+    if ylimits > 0
+        ylim([0, ylimits]);
+    else 
+        ylim([ylimits, 0])
+    end
+
+    % --- Subplot 2: RWSCF ---
+    subplot(2,1,2);
+    plotOnePair(RWSCF_pre, RWSCF_post, choosetype);
+    title(figtitle)
+    if ylimits > 0
+        ylim([0, ylimits]);
+    else 
+        ylim([ylimits, 0])
+    end
+end
+
+
+% ================= Helper =================
+function p = plotOnePair(preData, postData, choosetype)
+
+    hold on;
+
+    % Draw paired lines
+    for i = 1:length(preData)
+            plot([1 2], [preData(i) postData(i)], '-', 'Color', [0.7 0.7 0.7]);
+    end
+
+    % Scatter points
+    plot(1, preData,  'ko', 'MarkerFaceColor', [0.7, 0.7, 0.7], 'MarkerEdgeColor', 'none', 'MarkerSize', 5);
+    plot(2, postData, 'ko', 'MarkerFaceColor', [0.7, 0.7, 0.7], 'MarkerEdgeColor', 'none', 'MarkerSize', 5);
+
+    % Mean ± SEM (ignoring NaNs)
+    m_pre  = mean(preData, 'omitnan', 'omitinf');
+    m_post = mean(postData, 'omitnan');
+    sem_pre  = std(preData, 'omitnan')  / sqrt(sum(~isnan(preData)));
+    sem_post = std(postData, 'omitnan') / sqrt(sum(~isnan(postData)));
+    errorbar([1 2], [m_pre m_post], [sem_pre sem_post], 'k', 'LineWidth', 1.5);
+
+    % Formatting
+    xlim([0.5 2.5]);
+    xticks([1 2]);
+    xticklabels({'Pre','Post'});
+    ylabel('% total trials');
+    y_min = 0;
+    y_max = max([preData; postData], [], 'omitnan');
+    if ~isfinite(y_min), y_min = 0.8; end
+    if ~isfinite(y_max), y_max = 1.2; end
+   % ylim([min(0.8, y_min*0.95), max(1.2, y_max*1.05)]);
+    box off;
+    set(gca,'FontSize',7);
+
+
+    hold off;
+
+    % Run stats
+    if strcmp(choosetype, 'normalized')
+        if sum(~isnan(postData))>4
+        is_normal = lillietest(postData);
+                        
+        if ~is_normal
+            testtype = 'one-sample t-test'
+            [~, p] = ttest(postData,  0)
+        else
+            testtype = 'one-sample signrank'
+            p = signrank(postData, 0)
+        end
+        else 
+            testtype = NaN;
+            p = NaN;
+        end
+    else
+        if (sum(~isnan(preData))>4) && (sum(~isnan(postData))>4)
+            isnormal1 = lillietest(preData);
+            isnormal2 = lillietest(postData);
+            if isnormal1 && isnormal2
+                [~, p] = ttest(preData, postData)
+                testtype = 'ttest'
+            else
+                p = signrank(preData, postData)
+                testtype = 'signrank'
+            end
+        else
+            p = NaN;
+            testtype = NaN;
+        end
+    end
+end
+
+
+

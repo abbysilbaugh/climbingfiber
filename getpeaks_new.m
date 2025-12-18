@@ -8,7 +8,7 @@
   % firstpeakprom (nCells x nTrials)
   % firstpeakwidth (nCells x nTrials)
     
-function [allData] = getpeaks_new(allData, peaks_prom, peaks_height, baselineNoise, stim_onset, signaltype, showplot)
+function [allData] = getallpeaks(allData, peaks_prom, peaks_height, baselineNoise, stim_onset, signaltype, showplot)
 
 nMice = size(allData.data, 2);
 
@@ -20,8 +20,8 @@ for i = 1:nMice
         signal = allData.data{i}.golaysignal;
     elseif strcmp(signaltype, 'golaysignal2')
         signal = allData.data{i}.golaysignal2;
-    elseif strcmp(signaltype, 'golaysignal3')
-        signal = allData.data{i}.golaysignal3;
+    elseif strcmp(signaltype, 'golaysignal1')
+        signal = allData.data{i}.golaysignal1;
     elseif strcmp(signaltype, 'golaysignal4')
         signal = allData.data{i}.golaysignal4;
     end

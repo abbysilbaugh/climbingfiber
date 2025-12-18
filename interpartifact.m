@@ -1,137 +1,173 @@
-% Created 4/5/24
-% Edited 4/12/24; rawminusfirstprctile is updated with updated firstprctilevalue
-% Linearly interpolates artifact
+% adds to allData.data{mouse}:
+    % corrected_rawtrace (nFrames x nCells x nTrials); artifact-corrected raw trace
+    % artifact_idx (nCells x nTrials); contains frame number of artifact
+    % artifact_amps (nCells x nTrials); contains amplitude of artifact
 
-function [allData] = interpartifact(allData)
+% Function notes:
+% Linearly interpolates artifact
+% If mousetoplot ~NaN, the artifact-corrected traces are plotted (individual neurons are plotted for each trial)
+
+function [allData] = interpartifact(allData, mousetoplot)
 
 nMice = length(allData.data);
-
-art_Idx = cell(nMice, 1);
-art_INTERP = cell(nMice, 1);
 for mouse = 1:nMice
     artifactFrames = allData.data{mouse}.artifactframes;
     
-    traces = allData.data{mouse}.rawminusfirstprctile;
+    traces = allData.data{mouse}.raw_signal;
     trialTypes = allData.data{mouse}.trialType; Otrials = strcmp(trialTypes, 'O'); WOtrials = strcmp(trialTypes, 'WO');
     artifactTrials = logical(Otrials + WOtrials);
-    [~, nCells, nTrials] = size(traces);
+    [nFrames, nCells, nTrials] = size(traces);
     
-    % Preallocate arrays to store value at artifact frame, before, and after
-    artifactAmp = zeros(nCells, nTrials);
-    artifactIdx = zeros(nCells, nTrials);
-    artifactPre = zeros(nCells, nTrials);
-    artifactPost = zeros(nCells, nTrials);
-    artifactINTERP = zeros(nCells, nTrials);
+    % FIND LOCATIONS OF POSITIVE AND NEGATIVE PEAKS
+    artifact_frames = cell(nCells, nTrials);
+    artifact_prom = cell(nCells, nTrials);
+    indices = zeros(nCells, nTrials);
+    amplitudes = zeros(nCells, nTrials);
     for j = 1:nTrials
         for k = 1:nCells
-            % If is not an artifact trial, put NaN
+            % If trial could not contain artifact, put NaN
             if ~artifactTrials(j)
-                artifactAmp(k, j) = NaN;
-                artifactIdx(k, j) = NaN;
-                artifactPre(k,j) = NaN;
-                artifactPost(k,j) = NaN;
-                artifactINTERP(k,j) = NaN;
-            % If it is an artifact trial...
+                artifact_frames{k, j} = [NaN, NaN];
+                indices(k, j) = NaN;
+                amplitudes(k,j) = NaN;
+            % If trial could contain artifact...
             else
                 % Find positive peaks
                 temptrace = traces(:, k, j);
-                [pks, locs] = findpeaks(temptrace);
+                [pks, locs, ~, p] = findpeaks(temptrace);
                 if length(artifactFrames) == 1
                     idx = find(locs == artifactFrames);
-                    pks = pks(idx); locs = locs(idx);
+                    locs = locs(idx); p = p(idx); pks = pks(idx);
+                    if length(locs) == 0
+                        locs = NaN; p = NaN; pks = NaN;
+                    end
     
                 elseif length(artifactFrames) == 2
                     idx1 = find(locs == artifactFrames(1)); pks1 = pks(idx1);
                     idx2 = find(locs == artifactFrames(2)); pks2 = pks(idx2);
                     if isempty(pks1) && isempty(pks2)
-                        pks = []; locs = [];
+                        locs = NaN; p = NaN; pks = NaN;
                     elseif ~isempty(pks1) && isempty(pks2)
-                        pks = pks(idx1); locs = locs(idx1);
+                        locs = locs(idx1); p = p(idx1); pks = pks(idx1);
                     elseif isempty(pks1) && ~isempty(pks2)
-                        pks = pks(idx2); locs = locs(idx2);
+                        locs = locs(idx2); p = p(idx2); pks = pks(idx2);
                     elseif ~isempty(pks1) && ~isempty(pks2)
                         if pks1 > pks2
-                            pks = pks(idx1); locs = locs(idx1);
+                            locs = locs(idx1); p = p(idx1); pks = pks(idx1);
                         elseif pks2 > pks1
-                            pks = pks(idx2); locs = locs(idx2);
+                            locs = locs(idx2); p = p(idx2); pks = pks(idx2);
                         end
                     end
                 end
     
-                if ~isempty(locs)
-                    artifactAmp(k,j) = pks;
-                    artifactIdx(k,j) = locs;
-                    artifactPre(k,j) = traces(locs - 3, k, j);
-                    artifactPost(k,j) = traces(locs + 1, k, j);
-                    artifactINTERP(k,j) = mean([artifactPre(k,j), artifactPost(k,j)]);
-                else
-                    % Find negative peaks (repeat above)
-                    temptrace = -traces(:, k, j);
-                    [pks, locs] = findpeaks(temptrace);
-                    if length(artifactFrames) == 1
-                        idx = find(locs == artifactFrames);
-                        pks = pks(idx); locs = locs(idx);
-        
-                    elseif length(artifactFrames) == 2
-                        idx1 = find(locs == artifactFrames(1)); pks1 = pks(idx1);
-                        idx2 = find(locs == artifactFrames(2)); pks2 = pks(idx2);
-                        if isempty(pks1) && isempty(pks2)
-                            pks = []; locs = [];
-                        elseif ~isempty(pks1) && isempty(pks2)
-                            pks = pks(idx1); locs = locs(idx1);
-                        elseif isempty(pks1) && ~isempty(pks2)
-                            pks = pks(idx2); locs = locs(idx2);
-                        elseif ~isempty(pks1) && ~isempty(pks2)
-                            if pks1 > pks2
-                                pks = pks(idx1); locs = locs(idx1);
-                            elseif pks2 > pks1
-                                pks = pks(idx2); locs = locs(idx2);
-                            end
+                % Find negative peaks
+                temptrace = -traces(:, k, j);
+                [pks_neg, locs_neg, ~, p_neg] = findpeaks(temptrace);
+                if length(artifactFrames) == 1
+                    idx = find(locs_neg == artifactFrames);
+                    locs_neg = locs_neg(idx); p_neg = p_neg(idx); pks_neg = pks_neg(idx);
+                    if length(locs_neg) == 0
+                        locs_neg = NaN; p_neg = NaN; pks_neg = pks_neg(idx);
+                    end
+    
+                elseif length(artifactFrames) == 2
+                    idx1 = find(locs_neg == artifactFrames(1)); pks1 = pks_neg(idx1);
+                    idx2 = find(locs_neg == artifactFrames(2)); pks2 = pks_neg(idx2);
+                    if isempty(pks1) && isempty(pks2)
+                        locs_neg = NaN; p_neg = NaN; pks_neg = NaN;
+                    elseif ~isempty(pks1) && isempty(pks2)
+                        locs_neg = locs_neg(idx1); p_neg = p_neg(idx1); pks_neg = pks_neg(idx1);
+                    elseif isempty(pks1) && ~isempty(pks2)
+                        locs_neg = locs_neg(idx2); p_neg = p_neg(idx2); pks_neg = pks_neg(idx2);
+                    elseif ~isempty(pks1) && ~isempty(pks2)
+                        if pks1 > pks2
+                            locs_neg = locs_neg(idx1); p_neg = p_neg(idx1); pks_neg = pks_neg(idx1);
+                        elseif pks2 > pks1
+                            locs_neg = locs_neg(idx2); p_neg = p_neg(idx2); pks_neg = pks_neg(idx2);
                         end
                     end
-    
-                    if ~isempty(locs)
-                        artifactAmp(k,j) = -pks; % negative peak, compensate
-                        artifactIdx(k,j) = locs;
-                        artifactPre(k,j) = traces(locs - 3, k, j);
-                        artifactPost(k,j) = traces(locs + 1, k, j);
-                        artifactINTERP(k,j) = mean([artifactPre(k,j), artifactPost(k,j)]);
-                    
-                    else
-    
-                        artifactAmp(k, j) = NaN;
-                        artifactIdx(k, j) = NaN;
-                        artifactPre(k,j) = NaN;
-                        artifactPost(k,j) = NaN;
-                        artifactINTERP(k,j) = NaN;
-                    end
+                end
+
+                if isnan(locs) && isnan(locs_neg)
+                    artifact_frames{k, j} = [NaN, NaN];
+                    artifact_prom{k, j} = [NaN, NaN];
+                    indices(k, j) = NaN;
+                    amplitudes(k, j) = NaN;
+                elseif isnan(locs) && ~isnan(locs_neg)
+                    artifact_frames{k, j} = [NaN, locs_neg];
+                    artifact_prom{k, j} = [NaN, p_neg];
+                    indices(k, j) = locs_neg;
+                    amplitudes(k, j) = pks_neg;
+                elseif ~isnan(locs) && isnan(locs_neg)
+                    artifact_frames{k,j} = [locs, NaN];
+                    artifact_prom{k, j} = [p, NaN];
+                    indices(k, j) = locs;
+                    amplitudes(k, j) = pks;
+                elseif ~isnan(locs) && ~isnan(locs_neg)
+                    artifact_frames{k, j} = [locs, locs_neg];
+                    artifact_prom{k, j} = [p, p_neg];
+                    temp = [locs, locs_neg];
+                    largerprom = find(max([p, p_neg]));
+                    artifactpoint = temp(largerprom);
+                    artifactvalue = traces(artifactpoint, k, j);
+                    indices(k, j) = artifactpoint;
+                    amplitudes(k, j) = artifactvalue;
                 end
             end
         end
     end
-    art_Idx{mouse} = artifactIdx;
-    art_INTERP{mouse} = artifactINTERP;
-    allData.data{mouse}.artifact_Idx = artifactIdx;
-    allData.data{mouse}.artifact_Amp = artifactAmp;
+
+
+    % INTERPOLATE
+    artcorrtrace = zeros(nFrames, nCells, nTrials);
+    for j = 1:nTrials
+        for k = 1:nCells
+            temp_trace = traces(:, k, j);
+            temp_artinfo = artifact_frames{k, j};
+            if sum(isnan(temp_artinfo)) == 2
+                artcorrtrace(:, k, j) = temp_trace;
+            elseif sum(isnan(temp_artinfo)) == 1
+                temp_artinfo = temp_artinfo(~isnan(temp_artinfo));
+                pre_val = temp_trace(temp_artinfo -1); post_val = temp_trace(temp_artinfo +1);
+                INTERP = mean([pre_val, post_val]);
+                temp_trace(temp_artinfo) = INTERP;
+                artcorrtrace(:, k, j) = temp_trace;
+            elseif sum(~isnan(temp_artinfo)) == 2
+                pre_frame = min(temp_artinfo) - 1; post_frame = max(temp_artinfo) + 1;
+                pre_val = temp_trace(pre_frame); post_val = temp_trace(post_frame);
+                INTERP = mean([pre_val, post_val]);
+                temp_trace(temp_artinfo) = INTERP;
+                artcorrtrace(:, k, j) = temp_trace;
+            end
+
+
+
+        end
+    end
+
+allData.data{mouse}.corrected_rawtrace = artcorrtrace;
+allData.data{mouse}.artifact_idx = indices;
+allData.data{mouse}.artifact_amps = amplitudes;
+
+if mouse == mousetoplot
+    for i = 1:size(artcorrtrace, 3)
+        figure('Position', [76,179,1809,420]);
+        for j = 1:nCells
+            plot(artcorrtrace(:, j, i), 'Color', [0 0 0 0.2])
+            hold on
+        end
+        ylabel('Arbitrary Units')
+        xticks([0 62 124 186 248 310 372 434 496 558 620])
+        xticklabels([-10 -8 -6 -4 -2 0 2 4 6 8 10])
+        xlabel('Seconds')
+        xline(310, 'Color', 'r')
+        ylim([0 25000])
+    end
 end
 
-% Replace points with interp
-for i=1:nMice
-    newtrace = allData.data{i}.rawminusfirstprctile;
-    [~, nCells, nTrials] = size(newtrace);
-    for j = 1:nTrials
-        %figure;
-        for k = 1:nCells
-            index = art_Idx{i}(k, j);
-            if ~isnan(index)
-                newtrace(index, k, j) = art_INTERP{i}(k,j);
-            end
-%             plot(newtrace(:, k, j), 'Color', [0 0 0 0.5])
-%             hold on
-        end
-    end
-    allData.data{i}.corrected_rawtrace = newtrace;
+
 end
+
 
 
 end

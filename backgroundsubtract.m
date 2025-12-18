@@ -54,7 +54,7 @@ for i = 1:nMice
    end
 
    allData.data{i}.rawminusfirstprctile = rawminus_prc;
-   allData.data{i}.ac_bs_signal = rawminus_smoothed_b;
+   %allData.data{i}.ac_bs_signal = rawminus_smoothed_b;
    
    
 

@@ -183,8 +183,10 @@ function p = runstats(data, mode, cellType)
                     
                     if ~is_normal_1 && ~is_normal_2
                         [~, p] = ttest(data1, data2);
+                        testtype = 'paired ttest';
                     else
                         p = signrank(data1, data2);
+                        testtype = 'paired signrank';
                     end
                         n1 = sum(~isnan(data1));
                         n2 = sum(~isnan(data2));

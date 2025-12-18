@@ -29,10 +29,10 @@ for i = 1:nMice
         switch tracetype
             case 'golaysignal'
                 longtrace = squeeze(allData.data{i}.golaysignal(:, j, :));
+            case 'golaysignal1'
+                longtrace = squeeze(allData.data{i}.golaysignal1(:, j, :));
             case 'golaysignal2'
                 longtrace = squeeze(allData.data{i}.golaysignal2(:, j, :));
-            case 'golaysignal3'
-                longtrace = squeeze(allData.data{i}.golaysignal3(:, j, :));
             case 'golaysignal4'
                 longtrace = squeeze(allData.data{i}.golaysignal4(:, j, :));
         end

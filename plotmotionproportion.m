@@ -347,6 +347,9 @@ function [m1_cond1, m1_cond2, m2_cond1, m2_cond2] = plotmotionproportion(proport
         end
         set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 
+        
+
+
 end
 
 function combinedvar = combineruntransition(getvar)

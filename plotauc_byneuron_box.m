@@ -6,7 +6,6 @@ m1_cond2 = getauc(m1_cond2, evoked_win);
 m2_cond1 = getauc(m2_cond1, evoked_win);
 m2_cond2 = getauc(m2_cond2, evoked_win);
 
-
 % Reformat data
 % Column 1 is condition 1 and column 2 is condition 2
 m1_PV = reformatdata(m1_cond1, m1_cond2, 1);
@@ -33,23 +32,23 @@ SSTs{1} = m1_SST;
 SSTs{2} = m2_SST;
 
 % RUN STATS (1 group, 2 conditions)
-p_m1_PV = runpairedstats(m1_PV)
-p_m1_PN = runpairedstats(m1_PN)
-p_m1_VIP = runpairedstats(m1_VIP)
-p_m1_UC = runpairedstats(m1_UC)
-p_m1_SST = runpairedstats(m1_SST)
+p_m1_PV = runpairedstats(m1_PV, 'PV; Expt1');
+p_m1_PN = runpairedstats(m1_PN, 'PN; Expt1');
+p_m1_VIP = runpairedstats(m1_VIP, 'VIP; Expt1');
+p_m1_UC = runpairedstats(m1_UC, 'UC; Expt1');
+p_m1_SST = runpairedstats(m1_SST, 'SST; Expt1');
 
-p_m2_PV = runpairedstats(m2_PV)
-p_m2_PN = runpairedstats(m2_PN)
-p_m2_VIP = runpairedstats(m2_VIP)
-p_m2_UC = runpairedstats(m2_UC)
-p_m2_SST = runpairedstats(m2_SST)
+p_m2_PV = runpairedstats(m2_PV, 'PV; Expt2');
+p_m2_PN = runpairedstats(m2_PN, 'PN; Expt2');
+p_m2_VIP = runpairedstats(m2_VIP, 'VIP; Expt2');
+p_m2_UC = runpairedstats(m2_UC, 'UC; Expt2');
+p_m2_SST = runpairedstats(m2_SST, 'SST; Expt2');
 
 % Create bar plots for mouse 1
-figure('Position', [374,508,609,219]);
+figure('Position', [1101,696,515,183]);
 title('Group 1 (Cond 1 vs Cond 2; each neuron)')
 subplot(1, 5, 1)
-ylabel('AUC (∆F/F0)')
+ylabel('AUC (∆Ft/F)')
 if ~isempty(m1_PN)
 daboxplot(m1_PN,'xtlabels', condition_names,'fill', 0,...
     'scatter',plotscatter,'scattersize',3,'scatteralpha',1,'outliers',0, 'color', neuron_colors{2}, 'mean', '1', 'whiskers', 1);
@@ -59,8 +58,9 @@ if p_m1_PN < 0.05
 end
 title(group_names(1))
 end
-ylabel('AUC (∆F/F0)')
+ylabel('AUC (∆Ft/F)')
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 2)
 if ~isempty(m1_UC)
@@ -72,6 +72,7 @@ if p_m1_UC < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 3)
 if ~isempty(m1_VIP)
@@ -83,6 +84,7 @@ if p_m1_VIP < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 4)
 if ~isempty(m1_SST)
@@ -94,6 +96,7 @@ if p_m1_SST < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 5)
 if ~isempty(m1_PV)
@@ -105,10 +108,11 @@ if p_m1_PV < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 
 % Create bar plots for mouse 2
-figure('Position', [374,508,609,219]);
+figure('Position', [1101,696,515,183]);
 subplot(1, 5, 1)
 if ~isempty(m2_PN)
 daboxplot(m2_PN,'xtlabels', condition_names,'fill', 1,...
@@ -121,6 +125,7 @@ title(group_names(2))
 end
 ylabel('AUC (∆F/F0)')
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 2)
 if ~isempty(m2_UC)
@@ -132,6 +137,7 @@ if p_m2_UC < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 3)
 if ~isempty(m2_VIP)
@@ -143,6 +149,7 @@ if p_m2_VIP < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 4)
 if ~isempty(m2_SST)
@@ -154,6 +161,7 @@ if p_m2_SST < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 subplot(1, 5, 5)
 if ~isempty(m2_PV)
@@ -165,6 +173,7 @@ if p_m2_PV < 0.05
 end
 end
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+xlim([0.5 2.5])
 
 % RUN STATS (2 groups, each condition)
 [p_PN_c1, p_PN_c2] = rununpairedstats(m1_PN, m2_PN);
@@ -183,7 +192,7 @@ fprintf('Group 1 vs Group 2 Cond 2 (PV) %.4f\n', p_PV_c2);
 fprintf('Group 1 vs Group 2 Cond 1 (SST) %.4f\n', p_SST_c1);
 fprintf('Group 1 vs Group 2 Cond 2 (SST) %.4f\n', p_SST_c2);
 
-figure('Position', [2020,387,980,137]);
+figure('Position', [1101,696,515,183]);
 subplot(1, 5, 1)
 if ~isempty(PNs{1})
 daboxplot(PNs,'linkline',1,...
@@ -193,6 +202,7 @@ ylabel('AUC (∆F/F0)');
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 end
 ylim(ylimits)
+
 
 subplot(1, 5, 2)
 if ~isempty(UCs{1})
@@ -233,6 +243,7 @@ ylabel('AUC (∆F/F0)');
 set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
 end
 ylim(ylimits)
+
 
 % Plot scatter plots
 % Define cell types and data
@@ -275,7 +286,7 @@ for i = 1:5
         
         
         % Plot data
-        figure('Position', [2020,387,980,137]);
+        figure('Position', [1101,696,515,183]);
         subplot(1, 5, i);
         scatter(m1(:, 1), m1(:, 2), 'MarkerEdgeColor', 'none', 'MarkerFaceColor', [0.5 0.5 0.5],'MarkerFaceAlpha', 0.5);
         hold on;
@@ -310,7 +321,7 @@ end
 
 end
 
-function p = runpairedstats(data)
+function p = runpairedstats(data, cellType)
 if ~isempty(data)
     data1 = data(:, 1); data2 = data(:, 2);
     if sum(~isnan(data1)) >=4 && sum(~isnan(data2)) >=4
@@ -322,16 +333,37 @@ if ~isempty(data)
         
         % Paired t-test (for normal data)
         [~, p] = ttest(data1, data2);
+        testtype = 'Paired t-test';
     else
         % Wilcoxon signed-rank test (for non-normal data)
         p = signrank(data1, data2);
-        
+        testtype = 'Wilcoxon signed-rank test';
     end
     else
         p = NaN;
+        testtype = NaN;
     end
+
+    n1 = sum(~isnan(data1));
+    n2 = sum(~isnan(data2));
+    mean_data1 = mean(data1, 'omitnan');
+    mean_data2 = mean(data2, 'omitnan');
+    median_data1 = median(data1, 'omitnan');
+    median_data2 = median(data2, 'omitnan');
+    sem_data1 = std(data1, 'omitnan')./sqrt(n1);
+    sem_data2 = std(data2, 'omitnan')./sqrt(n2);
+    
+    % Print results
+    fprintf('Cell Type: %s\n', cellType);
+    fprintf('Test Type: %s\n', testtype);
+    fprintf('p-value: %.4f\n', p);
+    fprintf('n Pre: %d, n Post: %d\n', n1, n2);
+    fprintf('Mean Pre: %.4f, Mean Post: %.4f\n', mean_data1, mean_data2);
+    fprintf('Median Pre: %.4f, Median Post: %.4f\n', median_data1, median_data2);
+    fprintf('SEM Pre: %.4f, SEM Post: %.4f\n', sem_data1, sem_data2);
 else
     p = NaN;
+
 end
 
 end
@@ -349,17 +381,21 @@ function [p1, p2] = rununpairedstats(data1, data2)
         if ~is_normal_1_data1 && ~is_normal_1_data2
             % Unpaired t-test for condition 1
             [~, p1] = ttest2(data1(:, 1), data2(:, 1));
+            warning('unpaired t-test')
         else
             % Mann-Whitney U test (rank-sum test) for condition 1
             p1 = ranksum(data1(:, 1), data2(:, 1));
+            warning('mann-whitney u-test')
         end
     
         if ~is_normal_2_data1 && ~is_normal_2_data2
             % Unpaired t-test for condition 2
             [~, p2] = ttest2(data1(:, 2), data2(:, 2));
+           warning('unpaired t-test')
         else
             % Mann-Whitney U test (rank-sum test) for condition 2
             p2 = ranksum(data1(:, 2), data2(:, 2));
+            warning('mann-whitney u-test')
         end
         else
             p1 = NaN;
@@ -370,6 +406,7 @@ function [p1, p2] = rununpairedstats(data1, data2)
         p1 = NaN;
         p2 = NaN;
     end
+
 
 end
 
@@ -408,7 +445,8 @@ function var = getauc(var, evoked_win)
                 for k = 1:nCells
                     for t = 1:nTrials
                         temp = signal(:, k, t);
-                            AUC(k, t) = abs(trapz(temp));
+                            %AUC(k, t) = abs(trapz(temp));
+                            AUC(k, t) = trapz(temp);
                     end
                 end
                 var{i, j} = AUC;

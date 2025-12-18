@@ -34,7 +34,7 @@ subplot(1, 5, 1)
 if ~isempty(m1_PN)
 daboxplot(m1_PN,'xtlabels', condition_names,...
     'scatter',0,'scattersize',25,'scatteralpha',0.6,'outliers',0, 'color', neuron_colors{2});
-%ylim(%ylimits)
+ylim(ylimits)
 if p_m1_PN < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
 end
@@ -46,7 +46,7 @@ subplot(1, 5, 2)
 if ~isempty(m1_UC)
 daboxplot(m1_UC,'xtlabels', condition_names,...
     'scatter',0,'scattersize',25,'scatteralpha',0.6,'outliers',0, 'color', neuron_colors{4});
-%ylim(%ylimits)
+ylim(ylimits)
 if p_m1_UC < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
 end
@@ -58,7 +58,7 @@ subplot(1, 5, 3)
 if ~isempty(m1_VIP)
 daboxplot(m1_VIP,'xtlabels', condition_names,...
     'scatter',0,'scattersize',25,'scatteralpha',0.6,'outliers',0, 'color', neuron_colors{3});
-%ylim(%ylimits)
+ylim(ylimits)
 if p_m1_VIP < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
 end
@@ -70,7 +70,7 @@ subplot(1, 5, 4)
 if ~isempty(m1_SST)
 daboxplot(m1_SST,'xtlabels', condition_names,...
     'scatter',0,'scattersize',25,'scatteralpha',0.6,'outliers',0, 'color', neuron_colors{5});
-%ylim(%ylimits)
+ylim(ylimits)
 if p_m1_SST < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
 end
@@ -82,7 +82,7 @@ subplot(1, 5, 5)
 if ~isempty(m1_PV)
 daboxplot(m1_PV,'xtlabels', condition_names,...
     'scatter',0,'scattersize',25,'scatteralpha',0.6,'outliers',0, 'color', neuron_colors{1});
-%ylim(%ylimits)
+ylim(ylimits)
 if p_m1_PV < 0.05
     text(1.5, 1, '*', 'HorizontalAlignment', 'center', 'FontSize', 50);
 end

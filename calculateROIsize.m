@@ -1,4 +1,4 @@
-function roi_size_summary = calculateROIsize(allData)
+function [allData, roi_size_summary] = calculateROIsize(allData)
     getmice = 1:size(allData.data, 2);
     config2_1 = 1;
     config2_2 = 3;
@@ -23,9 +23,13 @@ function roi_size_summary = calculateROIsize(allData)
     for i = getmice 
         temp = allData.data{i}.ROIcoords;
         cellType = allData.data{i}.cellType;
+        roi_sizes_max = NaN(length(cellType), 1);
+        roi_sizes_avg = NaN(length(cellType), 1);
 
         if length(temp) == length(cellType)
             if i ~= config2_1 && i ~= config2_2 && i ~= config2_3
+
+                [roi_sizes_max, roi_sizes_avg] = computeDiameters(temp);
         
                 % Identify cell type indices
                 PNs = temp(strcmp(cellType, 'PN'));
@@ -53,6 +57,9 @@ function roi_size_summary = calculateROIsize(allData)
                 roiSizes.PV.avg = [roiSizes.PV.avg; avgPVs];
             end
         end
+
+        allData.data{i}.roi_sizes_max = roi_sizes_max;
+        allData.data{i}.roi_sizes_avg = roi_sizes_avg;
     end
     
     % Compile VIP, SST, and PV before calculating statistics

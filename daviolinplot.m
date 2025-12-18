@@ -342,9 +342,9 @@ for g = 1:num_groups
         xi_range = linspace(min(data_vals(~outlier_inds)), max(data_vals(~outlier_inds)), 1000);
         
         if strcmp(confs.smoothing, 'default')
-            [f, xi] = ksdensity(data_vals(~outlier_inds), 'Support', 'positive', 'BoundaryCorrection', 'reflection');
+            [f, xi] = ksdensity(data_vals(~outlier_inds), 'BoundaryCorrection', 'reflection');
         else
-            [f, xi] = ksdensity(data_vals(~outlier_inds), 'Support', 'positive', 'BoundaryCorrection', 'reflection', 'Bandwidth', confs.smoothing);
+            [f, xi] = ksdensity(data_vals(~outlier_inds), 'BoundaryCorrection', 'reflection', 'Bandwidth', confs.smoothing);
         end
 
 

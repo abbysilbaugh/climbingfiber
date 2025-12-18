@@ -248,6 +248,80 @@ mse2_sig4 = cbdata.mse2_sig4; % mouse 2; (3 x 15)*2
         [p_latency, ~] = signrank(spont_latency, evoked_latency)
         warning('signrank')
     end
+
+%% Amplitude Box Plot
+figure('Position', [680,855,176,123]); 
+hold on
+
+amp_data = {spont_amp, evoked_amp};
+amp_means = cellfun(@mean, amp_data);
+amp_sems = cellfun(@(x) std(x)/sqrt(length(x)), amp_data);
+
+% Combine for boxplot
+data_all = [spont_amp(:); evoked_amp(:)];
+group_all = [ones(size(spont_amp(:))); 2*ones(size(evoked_amp(:)))];
+
+% Box plot
+boxplot(data_all, group_all, 'Colors', 'k', 'Symbol', '', ...
+    'BoxStyle', 'outline', 'Widths', 0.5, 'MedianStyle', 'target');
+
+% Overlay mean points
+plot(1:2, amp_means, 'ok', 'MarkerFaceColor', 'k', 'MarkerSize', 3);
+
+% Error bars for SEM
+errorbar(1:2, amp_means, amp_sems, 'k', 'linestyle', 'none', 'linewidth', 1);
+
+% Axis formatting
+set(gca, 'xtick', 1:2, 'xticklabel', {'Spontaneous', 'Evoked'});
+ylabel('Amplitude (∆F/F)');
+ylim([0 1.1]);
+box off;
+set(gca, 'FontSize', 7, 'FontName', 'Helvetica');
+
+% Add significance marker
+y_max = max(amp_means + amp_sems) * 1.1;
+line([1 2], [y_max y_max], 'color', 'k');
+text(1.5, y_max * 1.1, get_star(p_amp), 'HorizontalAlignment', 'center', 'FontSize', 7);
+xlim([0.5 2.5]);
+
+%% Latency Box Plot
+figure('Position', [680,855,176,123]);
+hold on
+
+latency_data = {spont_latency, evoked_latency};
+latency_means = cellfun(@mean, latency_data);
+latency_sems = cellfun(@(x) std(x)/sqrt(length(x)), latency_data);
+
+data_all = [spont_latency(:); evoked_latency(:)];
+group_all = [ones(size(spont_latency(:))); 2*ones(size(evoked_latency(:)))];
+
+boxplot(data_all, group_all, 'Colors', 'k', 'Symbol', '', ...
+    'BoxStyle', 'outline', 'Widths', 0.5, 'MedianStyle', 'target');
+
+% Overlay mean
+plot(1:2, latency_means, 'ok', 'MarkerFaceColor', 'k', 'MarkerSize', 3);
+
+% Error bars for SEM
+errorbar(1:2, latency_means, latency_sems, 'k', 'linestyle', 'none', 'linewidth', 1);
+
+% Axis formatting
+set(gca, 'xtick', 1:2, 'xticklabel', {'Spontaneous', 'Evoked'});
+yticks([3.098, 6.1960, 9.294, 12.3920]);
+yticklabels([100, 200, 300, 400]);
+ylabel('Latency to peak (ms)');
+box off;
+set(gca, 'FontSize', 7, 'FontName', 'Helvetica');
+xlim([0.5 2.5]);
+
+    % Add significance marker
+    y_max = max(latency_means + latency_sems) * 1.1;
+    line([1 2], [y_max y_max], 'color', 'k')
+    text(1.5, y_max * 1.1, get_star(p_latency), 'HorizontalAlignment', 'center', 'FontSize', 7)
+    xlim([0.5 2.5])
+    set(gca, 'FontSize', 7, 'FontName', 'Helvetica')
+    ylim([0 15])
+
+
     
     % Amplitude Bar Plot
     amp_data = {spont_amp, evoked_amp};

@@ -5,7 +5,7 @@
 function [pks_win, spks_win] = visualizealleventsbymouse(allData, std_thresh, showeach)
 
 nMice = length(allData.data);
-nFrames = size(allData.data{1}.ac_bs_signal, 1);
+nFrames = size(allData.data{1}.golaysignal, 1);
 allmicehist_spks = zeros(nFrames, nMice);
 allmicehist_pks = zeros(nFrames, nMice);
 % nBins = nFrames;
