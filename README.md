@@ -6,10 +6,3 @@ To generate all the figures from the publication, take the following steps:
 3. Run climbingfiber_plots_main from within your climbingfiber folder. Breakpoints are recommended.
 
 MATLAB version 2022a was used.
-
-
-Violin plot citation:
-
-## Citation
-
-[![DOI](https://zenodo.org/badge/60771923.svg)](https://zenodo.org/badge/latestdoi/60771923)
